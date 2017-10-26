@@ -1,5 +1,6 @@
 #include "Agent.h"
 #include <queue>
+#include "Path.h"
 
 using namespace std;
 
@@ -224,6 +225,9 @@ void Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, std::vector<std::v
 			frontier.push(Vector2D(current.x, current.y - CELL_SIZE));
 			cameFrom.push_back(make_pair(Vector2D(current.x, current.y - CELL_SIZE), current));
 		}
+
+		Path pathInverse;
+		pathInverse.points.push_back(pend);
 
 	}
 
