@@ -1,6 +1,5 @@
 #include "Agent.h"
 #include <queue>
-#include "Path.h"
 
 using namespace std;
 
@@ -160,11 +159,11 @@ bool Agent::loadSpriteTexture(char* filename, int _num_frames)
 }
 
 //Pathfinding
-void Agent::pathFind(Vector2D pinit, Vector2D pend, int method, std::vector<std::vector<int>> terrain) {
+Path Agent::pathFind(Vector2D pinit, Vector2D pend, int method, std::vector<std::vector<int>> terrain) {
 
 	switch (method) {
 		case 0://Breadth First Search
-			breadthFirstSearch(pinit, pend, terrain);
+			return breadthFirstSearch(pinit, pend, terrain);
 			break;
 		case 1://Dijkstra
 
@@ -189,46 +188,73 @@ bool search(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D position) {
 	return find;
 }
 
-void Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, std::vector<std::vector<int>> terrain) {
+Vector2D getPrevious(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D position) {
+	bool find = false;
+	Vector2D prev = NULL;
+	int i = 0;
+	while (!find && i < cameFrom.size()) {
+		if (cameFrom[i].first == position) {
+			find = true;
+			prev = cameFrom[i].second;
+		}
+		i++;
+	}
+	return prev;
+}
+
+Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, std::vector<std::vector<int>> terrain) {
 
 	queue<Vector2D> frontier;
 	frontier.push(pinit);
 	vector<pair<Vector2D, Vector2D>> cameFrom;
 	cameFrom.push_back(make_pair(pinit, NULL));
 
-	while (!frontier.empty){
+	while (frontier.size() > 0){
 
 		Vector2D current = frontier.front();
 		frontier.pop();
-
+		
 		//Derecha
-		if (terrain[(current.x/CELL_SIZE) + 1][current.y/CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x+CELL_SIZE, current.y))) {
+		if (terrain[(current.x+CELL_SIZE) / CELL_SIZE][current.y/CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x+CELL_SIZE, current.y))) {
 			frontier.push(Vector2D(current.x + CELL_SIZE, current.y));
 			cameFrom.push_back(make_pair(Vector2D(current.x + CELL_SIZE, current.y), current));
 		}
 
 		//Abajo
-		if (terrain[current.x / CELL_SIZE][(current.y / CELL_SIZE) + 1] != 0 && !search(cameFrom, Vector2D(current.x, current.y + CELL_SIZE))) {
+		if (terrain[current.x / CELL_SIZE][(current.y + CELL_SIZE) / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x, current.y + CELL_SIZE))) {
 			frontier.push(Vector2D(current.x, current.y + CELL_SIZE));
 			cameFrom.push_back(make_pair(Vector2D(current.x, current.y + CELL_SIZE), current));
 		}
-		frontier.pop();
 
 		//Izquierda
-		if (terrain[(current.x / CELL_SIZE) - 1][current.y / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x - CELL_SIZE, current.y))) {
+		if (terrain[(current.x - CELL_SIZE) / CELL_SIZE][current.y / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x - CELL_SIZE, current.y))) {
 			frontier.push(Vector2D(current.x - CELL_SIZE, current.y));
 			cameFrom.push_back(make_pair(Vector2D(current.x - CELL_SIZE, current.y), current));
 		}
 
 		//Arriba
-		if (terrain[current.x / CELL_SIZE][(current.y / CELL_SIZE) - 1] != 0 && !search(cameFrom, Vector2D(current.x, current.y - CELL_SIZE))) {
+		if (terrain[current.x / CELL_SIZE][(current.y - CELL_SIZE) / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x, current.y - CELL_SIZE))) {
 			frontier.push(Vector2D(current.x, current.y - CELL_SIZE));
 			cameFrom.push_back(make_pair(Vector2D(current.x, current.y - CELL_SIZE), current));
 		}
 
-		Path pathInverse;
-		pathInverse.points.push_back(pend);
+	}
+
+	Path pathInverse;
+	Vector2D current = pend;
+	pathInverse.points.push_back(current);
+	while (current != pinit && current != NULL) {
+
+		current = getPrevious(cameFrom, current);
+		if(current != NULL) pathInverse.points.push_back(current);
 
 	}
+	
+	Path path;
+	for (int i = 0; i < pathInverse.points.size(); i++) {
+		path.points.push_back(pathInverse.points.back());
+	}
+
+	return path;
 
 }
