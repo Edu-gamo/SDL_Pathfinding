@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 		this_tick = SDL_GetTicks();
 		if (this_tick < next_tick)
 		{
-			SDL_Delay(next_tick - this_tick);
+			//SDL_Delay(next_tick - this_tick);
 		}
 		next_tick = this_tick + (1000 / FRAMES_PER_SEC);
 

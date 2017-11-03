@@ -68,7 +68,7 @@ void ScenePathFinding1::update(float dtime, SDL_Event *event)
 						break;
 
 				path.points.push_back(cell2pix(cell));*/
-				path = agents[0]->pathFind(agents[0]->getPosition(), cell2pix(cell), 0, terrain);
+				path = agents[0]->pathFind(agents[0]->getPosition(), cell2pix(cell), 0, graph);
 			}
 		}
 		break;
@@ -274,6 +274,18 @@ void ScenePathFinding1::initMaze()
 				}
 			}
 
+		}
+	}
+
+	//Create Graph
+	for (int i = 0; i < num_cell_x; i++) {
+		for (int j = 0; j < num_cell_y; j++) {
+			if (terrain[i][j] != 0) {
+				if (i + 1 < num_cell_x && terrain[i + 1][j] != 0) graph.connections.push_back(Connection(cell2pix(Vector2D(i, j)), cell2pix(Vector2D(i + 1, j)), terrain[i + 1][j]));
+				if (i - 1 > 0 && terrain[i - 1][j] != 0) graph.connections.push_back(Connection(cell2pix(Vector2D(i, j)), cell2pix(Vector2D(i - 1, j)), terrain[i - 1][j]));
+				if (j + 1 < num_cell_y && terrain[i][j + 1] != 0) graph.connections.push_back(Connection(cell2pix(Vector2D(i, j)), cell2pix(Vector2D(i, j + 1)), terrain[i][j + 1]));
+				if (j - 1 > 0 && terrain[i][j - 1] != 0) graph.connections.push_back(Connection(cell2pix(Vector2D(i, j)), cell2pix(Vector2D(i, j - 1)), terrain[i][j - 1]));
+			}
 		}
 	}
 

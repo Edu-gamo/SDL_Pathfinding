@@ -9,6 +9,8 @@
 #include "SteeringBehavior.h"
 #include "Path.h"
 
+#include "Graph.h"
+
 
 class Agent
 {
@@ -51,7 +53,7 @@ public:
 	bool Agent::loadSpriteTexture(char* filename, int num_frames=1);
 
 	//Pathfinding
-	Path pathFind(Vector2D pinit, Vector2D pend, int method, std::vector<std::vector<int>> terrain);
-	Path breadthFirstSearch(Vector2D pinit, Vector2D pend, std::vector<std::vector<int>> terrain);
+	Path pathFind(Vector2D pinit, Vector2D pend, int method, Graph terrain);
+	Path breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain);
 	
 };

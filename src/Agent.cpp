@@ -159,7 +159,7 @@ bool Agent::loadSpriteTexture(char* filename, int _num_frames)
 }
 
 //Pathfinding
-Path Agent::pathFind(Vector2D pinit, Vector2D pend, int method, std::vector<std::vector<int>> terrain) {
+Path Agent::pathFind(Vector2D pinit, Vector2D pend, int method, Graph terrain) {
 
 	switch (method) {
 		case 0://Breadth First Search
@@ -202,7 +202,7 @@ Vector2D getPrevious(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D positio
 	return prev;
 }
 
-Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, std::vector<std::vector<int>> terrain) {
+Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 
 	queue<Vector2D> frontier;
 	frontier.push(pinit);
@@ -214,28 +214,13 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, std::vector<std::v
 		Vector2D current = frontier.front();
 		frontier.pop();
 		
-		//Derecha
-		if (terrain[(current.x+CELL_SIZE) / CELL_SIZE][current.y/CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x+CELL_SIZE, current.y))) {
-			frontier.push(Vector2D(current.x + CELL_SIZE, current.y));
-			cameFrom.push_back(make_pair(Vector2D(current.x + CELL_SIZE, current.y), current));
-		}
+		vector<Connection> neighboor = terrain.getConnections(&current);
 
-		//Abajo
-		if (terrain[current.x / CELL_SIZE][(current.y + CELL_SIZE) / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x, current.y + CELL_SIZE))) {
-			frontier.push(Vector2D(current.x, current.y + CELL_SIZE));
-			cameFrom.push_back(make_pair(Vector2D(current.x, current.y + CELL_SIZE), current));
-		}
-
-		//Izquierda
-		if (terrain[(current.x - CELL_SIZE) / CELL_SIZE][current.y / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x - CELL_SIZE, current.y))) {
-			frontier.push(Vector2D(current.x - CELL_SIZE, current.y));
-			cameFrom.push_back(make_pair(Vector2D(current.x - CELL_SIZE, current.y), current));
-		}
-
-		//Arriba
-		if (terrain[current.x / CELL_SIZE][(current.y - CELL_SIZE) / CELL_SIZE] != 0 && !search(cameFrom, Vector2D(current.x, current.y - CELL_SIZE))) {
-			frontier.push(Vector2D(current.x, current.y - CELL_SIZE));
-			cameFrom.push_back(make_pair(Vector2D(current.x, current.y - CELL_SIZE), current));
+		for (int i = 0; i < neighboor.size(); i++) {
+			if (!search(cameFrom, *neighboor[i].getToNode())) {
+				frontier.push(*neighboor[i].getToNode());
+				cameFrom.push_back(make_pair(*neighboor[i].getToNode(), current));
+			}
 		}
 
 	}
