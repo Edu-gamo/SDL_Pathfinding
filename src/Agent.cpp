@@ -188,6 +188,16 @@ bool search(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D position) {
 	return find;
 }
 
+bool search(vector<Connection> cameFrom, Vector2D position) {
+	bool find = false;
+	int i = 0;
+	while (!find && i < cameFrom.size()) {
+		if (*cameFrom[i].getToNode() == position) find = true;
+		i++;
+	}
+	return find;
+}
+
 Vector2D getPrevious(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D position) {
 	bool find = false;
 	Vector2D prev = NULL;
@@ -202,12 +212,28 @@ Vector2D getPrevious(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D positio
 	return prev;
 }
 
+Vector2D getPrevious(vector<Connection> cameFrom, Vector2D position) {
+	bool find = false;
+	Vector2D prev = NULL;
+	int i = 0;
+	while (!find && i < cameFrom.size()) {
+		if (*cameFrom[i].getToNode() == position) {
+			find = true;
+			prev = *cameFrom[i].getFromNode();
+		}
+		i++;
+	}
+	return prev;
+}
+
 Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 
 	queue<Vector2D> frontier;
 	frontier.push(pinit);
-	vector<pair<Vector2D, Vector2D>> cameFrom;
-	cameFrom.push_back(make_pair(pinit, NULL));
+	//vector<pair<Vector2D, Vector2D>> cameFrom;
+	vector<Connection> cFrom;
+	//cameFrom.push_back(make_pair(pinit, NULL));
+	cFrom.push_back(Connection(NULL, pinit, 0));
 
 	while (frontier.size() > 0){
 
@@ -217,9 +243,14 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 		vector<Connection> neighboor = terrain.getConnections(&current);
 
 		for (int i = 0; i < neighboor.size(); i++) {
-			if (!search(cameFrom, *neighboor[i].getToNode())) {
+			/*if (!search(cameFrom, *neighboor[i].getToNode())) {
 				frontier.push(*neighboor[i].getToNode());
 				cameFrom.push_back(make_pair(*neighboor[i].getToNode(), current));
+			}*/
+			if (!search(cFrom, *neighboor[i].getToNode())) {
+				frontier.push(*neighboor[i].getToNode());
+				//cFrom.push_back(Connection(*neighboor[i].getToNode(), current, neighboor[i].getCost()));
+				cFrom.push_back(neighboor[i]);
 			}
 		}
 
@@ -230,7 +261,8 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 	pathInverse.points.push_back(current);
 	while (current != pinit && current != NULL) {
 
-		current = getPrevious(cameFrom, current);
+		//current = getPrevious(cameFrom, current);
+		current = getPrevious(cFrom, current);
 		if(current != NULL) pathInverse.points.push_back(current);
 
 	}

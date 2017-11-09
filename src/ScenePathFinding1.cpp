@@ -75,6 +75,7 @@ void ScenePathFinding1::update(float dtime, SDL_Event *event)
 	default:
 		break;
 	}
+
 	if ((currentTargetIndex == -1) && (path.points.size()>0))
 		currentTargetIndex = 0;
 
