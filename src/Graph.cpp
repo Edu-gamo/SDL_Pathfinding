@@ -37,7 +37,8 @@ Graph::~Graph() {
 vector<Connection> Graph::getConnections(Vector2D* fromNode) {
 	vector<Connection> con;
 	for (int i = 0; i < this->connections.size(); i++) {
-		if (fromNode == this->connections[i].getFromNode()) con.push_back(this->connections[i]);
+		if (*fromNode == *(this->connections[i].getFromNode())) 
+			con.push_back(this->connections[i]);
 	}
 	return con;
 }

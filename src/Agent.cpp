@@ -161,6 +161,9 @@ bool Agent::loadSpriteTexture(char* filename, int _num_frames)
 //Pathfinding
 Path Agent::pathFind(Vector2D pinit, Vector2D pend, int method, Graph terrain) {
 
+	pinit.x = (int)pinit.x;
+	pinit.y = (int)pinit.y;
+
 	switch (method) {
 		case 0://Breadth First Search
 			return breadthFirstSearch(pinit, pend, terrain);
@@ -266,10 +269,14 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 		if(current != NULL) pathInverse.points.push_back(current);
 
 	}
+
+	cFrom.clear();
 	
+	int size = pathInverse.points.size();
 	Path path;
-	for (int i = 0; i < pathInverse.points.size(); i++) {
+	for (int i = 0; i < size; i++) {
 		path.points.push_back(pathInverse.points.back());
+		pathInverse.points.pop_back();
 	}
 
 	return path;
