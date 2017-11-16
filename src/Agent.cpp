@@ -159,17 +159,14 @@ bool Agent::loadSpriteTexture(char* filename, int _num_frames)
 }
 
 //Pathfinding
-Path Agent::pathFind(Vector2D pinit, Vector2D pend, int method, Graph terrain) {
-
-	pinit.x = (int)pinit.x;
-	pinit.y = (int)pinit.y;
+Path Agent::pathFind(Vector2D pinit, Vector2D pend, Graph terrain) {
 
 	switch (method) {
 		case 0://Breadth First Search
 			return breadthFirstSearch(pinit, pend, terrain);
 			break;
 		case 1://Dijkstra
-
+			return dijkstra(pinit, pend, terrain);
 			break;
 		case 2://Greedy Best-First-Search
 
@@ -181,38 +178,29 @@ Path Agent::pathFind(Vector2D pinit, Vector2D pend, int method, Graph terrain) {
 
 }
 
-bool search(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D position) {
-	bool find = false;
-	int i = 0;
-	while (!find && i < cameFrom.size()) {
-		if (cameFrom[i].first == position) find = true;
-		i++;
-	}
-	return find;
-}
-
 bool search(vector<Connection> cameFrom, Vector2D position) {
 	bool find = false;
 	int i = 0;
 	while (!find && i < cameFrom.size()) {
-		if (*cameFrom[i].getToNode() == position) find = true;
+		if (*cameFrom[i].getToNode() == position) 
+			find = true;
 		i++;
 	}
 	return find;
 }
 
-Vector2D getPrevious(vector<pair<Vector2D, Vector2D>> cameFrom, Vector2D position) {
+Connection find(vector<Connection> cameFrom, Vector2D position) {
+	Connection connection;
 	bool find = false;
-	Vector2D prev = NULL;
 	int i = 0;
 	while (!find && i < cameFrom.size()) {
-		if (cameFrom[i].first == position) {
+		if (*cameFrom[i].getToNode() == position) {
 			find = true;
-			prev = cameFrom[i].second;
+			connection = cameFrom[i];
 		}
 		i++;
 	}
-	return prev;
+	return connection;
 }
 
 Vector2D getPrevious(vector<Connection> cameFrom, Vector2D position) {
@@ -233,9 +221,7 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 
 	queue<Vector2D> frontier;
 	frontier.push(pinit);
-	//vector<pair<Vector2D, Vector2D>> cameFrom;
 	vector<Connection> cFrom;
-	//cameFrom.push_back(make_pair(pinit, NULL));
 	cFrom.push_back(Connection(NULL, pinit, 0));
 
 	while (frontier.size() > 0){
@@ -246,13 +232,8 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 		vector<Connection> neighboor = terrain.getConnections(&current);
 
 		for (int i = 0; i < neighboor.size(); i++) {
-			/*if (!search(cameFrom, *neighboor[i].getToNode())) {
-				frontier.push(*neighboor[i].getToNode());
-				cameFrom.push_back(make_pair(*neighboor[i].getToNode(), current));
-			}*/
 			if (!search(cFrom, *neighboor[i].getToNode())) {
 				frontier.push(*neighboor[i].getToNode());
-				//cFrom.push_back(Connection(*neighboor[i].getToNode(), current, neighboor[i].getCost()));
 				cFrom.push_back(neighboor[i]);
 			}
 		}
@@ -264,7 +245,6 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 	pathInverse.points.push_back(current);
 	while (current != pinit && current != NULL) {
 
-		//current = getPrevious(cameFrom, current);
 		current = getPrevious(cFrom, current);
 		if(current != NULL) pathInverse.points.push_back(current);
 
@@ -272,6 +252,61 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 
 	cFrom.clear();
 	
+	int size = pathInverse.points.size();
+	Path path;
+	for (int i = 0; i < size; i++) {
+		path.points.push_back(pathInverse.points.back());
+		pathInverse.points.pop_back();
+	}
+
+	return path;
+
+}
+
+bool operator<(pair<int, Vector2D> a, pair<int, Vector2D> b) { return a.first < b.first ? true : false; }
+
+Path Agent::dijkstra(Vector2D pinit, Vector2D pend, Graph terrain) {
+
+	priority_queue<pair<int, Vector2D>> frontier;
+	frontier.push(make_pair(0, pinit));
+	vector<Connection> cFrom;
+	cFrom.push_back(Connection(NULL, pinit, 0));
+
+	while (frontier.size() > 0) {
+
+		pair<int, Vector2D> current = frontier.top();
+		frontier.pop();
+		//if (current.second == pend) break; //Early exit
+
+		vector<Connection> neighboor = terrain.getConnections(&current.second);
+		int currentCost = current.first;
+		//int currentCost = cFrom.back().cost;
+
+		for (int i = 0; i < neighboor.size(); i++) {
+			int newCost = currentCost + neighboor[i].cost;
+			bool isthere = search(cFrom, *neighboor[i].getToNode());
+			int provaCost = find(cFrom, *neighboor[i].getToNode()).cost;
+			if (!isthere || newCost < provaCost) {
+				neighboor[i].cost = newCost;
+				frontier.push(make_pair(newCost, *neighboor[i].getToNode()));
+				cFrom.push_back(neighboor[i]);
+			}
+		}
+
+	}
+
+	Path pathInverse;
+	Vector2D current = pend;
+	pathInverse.points.push_back(current);
+	while (current != pinit && current != NULL) {
+
+		current = getPrevious(cFrom, current);
+		if (current != NULL) pathInverse.points.push_back(current);
+
+	}
+
+	cFrom.clear();
+
 	int size = pathInverse.points.size();
 	Path path;
 	for (int i = 0; i < size; i++) {

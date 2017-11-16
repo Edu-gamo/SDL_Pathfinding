@@ -53,7 +53,11 @@ public:
 	bool Agent::loadSpriteTexture(char* filename, int num_frames=1);
 
 	//Pathfinding
-	Path pathFind(Vector2D pinit, Vector2D pend, int method, Graph terrain);
+	int method = 0;
+	Path pathFind(Vector2D pinit, Vector2D pend, Graph terrain);
 	Path breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain);
+	Path dijkstra(Vector2D pinit, Vector2D pend, Graph terrain);
+
+	bool autoCoin = false;
 	
 };

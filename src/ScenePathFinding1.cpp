@@ -55,6 +55,29 @@ void ScenePathFinding1::update(float dtime, SDL_Event *event)
 	case SDL_KEYDOWN:
 		if (event->key.keysym.scancode == SDL_SCANCODE_SPACE)
 			draw_grid = !draw_grid;
+		if (event->key.keysym.scancode == SDL_SCANCODE_A) {
+			agents[0]->autoCoin = !agents[0]->autoCoin;
+			if (agents[0]->autoCoin) {
+				path.points.clear();
+				path = agents[0]->pathFind(cell2pix(pix2cell(agents[0]->getPosition())), cell2pix(coinPosition), graph);
+			}
+		}
+		if (event->key.keysym.scancode == SDL_SCANCODE_Z && agents[0]->method != 0) {
+			agents[0]->method = 0;
+			cout << "Breadth First Search" << endl;
+		}
+		if (event->key.keysym.scancode == SDL_SCANCODE_X && agents[0]->method != 1) {
+			agents[0]->method = 1;
+			cout << "Dijkstra" << endl;
+		}
+		if (event->key.keysym.scancode == SDL_SCANCODE_C && agents[0]->method != 2) {
+			agents[0]->method = 2;
+			cout << "Greedy Best-First-Search" << endl;
+		}
+		if (event->key.keysym.scancode == SDL_SCANCODE_V && agents[0]->method != 3) {
+			agents[0]->method = 3;
+			cout << "A*" << endl;
+		}
 		break;
 	case SDL_MOUSEMOTION:
 	case SDL_MOUSEBUTTONDOWN:
@@ -63,12 +86,7 @@ void ScenePathFinding1::update(float dtime, SDL_Event *event)
 			Vector2D cell = pix2cell(Vector2D((float)(event->button.x), (float)(event->button.y)));
 			if (isValidCell(cell))
 			{
-				/*if (path.points.size() > 0)
-					if (path.points[path.points.size() - 1] == cell2pix(cell))
-						break;
-
-				path.points.push_back(cell2pix(cell));*/
-				path = agents[0]->pathFind(agents[0]->getPosition(), cell2pix(cell), 0, graph);
+				if (path.points.size() == 0) path = agents[0]->pathFind(cell2pix(pix2cell(agents[0]->getPosition())), cell2pix(cell), graph);
 			}
 		}
 		break;
@@ -97,6 +115,7 @@ void ScenePathFinding1::update(float dtime, SDL_Event *event)
 						coinPosition = Vector2D(-1, -1);
 						while ((!isValidCell(coinPosition)) || (Vector2D::Distance(coinPosition, pix2cell(agents[0]->getPosition()))<3))
 							coinPosition = Vector2D((float)(rand() % num_cell_x), (float)(rand() % num_cell_y));
+						if(agents[0]->autoCoin) path = agents[0]->pathFind(cell2pix(pix2cell(agents[0]->getPosition())), cell2pix(coinPosition), graph);
 					}
 				}
 				else
