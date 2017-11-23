@@ -1,5 +1,6 @@
 #include "Agent.h"
 #include <queue>
+#include <cmath>
 
 using namespace std;
 
@@ -169,10 +170,10 @@ Path Agent::pathFind(Vector2D pinit, Vector2D pend, Graph terrain) {
 			return dijkstra(pinit, pend, terrain);
 			break;
 		case 2://Greedy Best-First-Search
-
+			return greedyBestFirstSearch(pinit, pend, terrain);
 			break;
 		case 3://A*
-
+			return apuntero(pinit, pend, terrain);
 			break;
 	}
 
@@ -189,18 +190,18 @@ bool search(vector<Connection> cameFrom, Vector2D position) {
 	return find;
 }
 
-Connection find(vector<Connection> cameFrom, Vector2D position) {
-	Connection connection;
+int find(vector<Connection> cameFrom, Vector2D position) {
+	int pos;
 	bool find = false;
 	int i = 0;
 	while (!find && i < cameFrom.size()) {
 		if (*cameFrom[i].getToNode() == position) {
 			find = true;
-			connection = cameFrom[i];
+			pos = i;
 		}
 		i++;
 	}
-	return connection;
+	return pos;
 }
 
 Vector2D getPrevious(vector<Connection> cameFrom, Vector2D position) {
@@ -230,6 +231,7 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 		frontier.pop();
 		
 		vector<Connection> neighboor = terrain.getConnections(&current);
+		cout << frontier.size() << endl;
 
 		for (int i = 0; i < neighboor.size(); i++) {
 			if (!search(cFrom, *neighboor[i].getToNode())) {
@@ -279,17 +281,140 @@ Path Agent::dijkstra(Vector2D pinit, Vector2D pend, Graph terrain) {
 		//if (current.second == pend) break; //Early exit
 
 		vector<Connection> neighboor = terrain.getConnections(&current.second);
-		int currentCost = current.first;
-		//int currentCost = cFrom.back().cost;
+		cout << frontier.size() << endl;
 
 		for (int i = 0; i < neighboor.size(); i++) {
-			int newCost = currentCost + neighboor[i].cost;
+			int newCost = current.first + neighboor[i].cost;
 			bool isthere = search(cFrom, *neighboor[i].getToNode());
-			int provaCost = find(cFrom, *neighboor[i].getToNode()).cost;
-			if (!isthere || newCost < provaCost) {
+			if (!isthere) {
 				neighboor[i].cost = newCost;
 				frontier.push(make_pair(newCost, *neighboor[i].getToNode()));
 				cFrom.push_back(neighboor[i]);
+			} else {
+				int pos = find(cFrom, *neighboor[i].getToNode());
+				int provaCost = cFrom[pos].cost;
+				if (newCost < provaCost) {
+					neighboor[i].cost = newCost;
+					frontier.push(make_pair(newCost, *neighboor[i].getToNode()));
+					cFrom[pos] = neighboor[i];
+				}
+			}
+		}
+
+	}
+
+	Path pathInverse;
+	Vector2D current = pend;
+	pathInverse.points.push_back(current);
+	while (current != pinit && current != NULL) {
+
+		current = getPrevious(cFrom, current);
+		if (current != NULL) pathInverse.points.push_back(current);
+
+	}
+
+	cFrom.clear();
+
+	int size = pathInverse.points.size();
+	Path path;
+	for (int i = 0; i < size; i++) {
+		path.points.push_back(pathInverse.points.back());
+		pathInverse.points.pop_back();
+	}
+
+	return path;
+
+}
+
+float heuristic(Vector2D a, Vector2D b) {
+	//# Manhattan distance on a square grid
+	return std::abs(a.x - b.x) + std::abs(a.y - b.y);
+}
+
+bool operator<(pair<float, Vector2D> a, pair<float, Vector2D> b) { return a.first > b.first ? true : false; }
+
+Path Agent::greedyBestFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
+
+	priority_queue<pair<float, Vector2D>> frontier;
+	frontier.push(make_pair(0, pinit));
+	vector<Connection> cFrom;
+	cFrom.push_back(Connection(NULL, pinit, 0));
+
+	while (frontier.size() > 0) {
+
+		pair<float, Vector2D> current = frontier.top();
+		frontier.pop();
+		//if (current.second == pend) break; //Early exit
+
+		vector<Connection> neighboor = terrain.getConnections(&current.second);
+		cout << frontier.size() << endl;
+		
+		for (int i = 0; i < neighboor.size(); i++) {
+			if (!search(cFrom, *neighboor[i].getToNode())) {
+				float heu = heuristic(*neighboor[i].getToNode(), pend);
+				frontier.push(make_pair(heu, *neighboor[i].getToNode()));
+				cFrom.push_back(neighboor[i]);
+			}
+		}
+
+	}
+
+	Path pathInverse;
+	Vector2D current = pend;
+	pathInverse.points.push_back(current);
+	while (current != pinit && current != NULL) {
+
+		current = getPrevious(cFrom, current);
+		if (current != NULL) pathInverse.points.push_back(current);
+
+	}
+
+	cFrom.clear();
+
+	int size = pathInverse.points.size();
+	Path path;
+	for (int i = 0; i < size; i++) {
+		path.points.push_back(pathInverse.points.back());
+		pathInverse.points.pop_back();
+	}
+
+	return path;
+
+}
+
+Path Agent::apuntero(Vector2D pinit, Vector2D pend, Graph terrain) {
+
+	priority_queue<pair<float, Vector2D>> frontier;
+	frontier.push(make_pair(0, pinit));
+	vector<Connection> cFrom;
+	cFrom.push_back(Connection(NULL, pinit, 0));
+
+	while (frontier.size() > 0) {
+
+		pair<int, Vector2D> current = frontier.top();
+		frontier.pop();
+		//if (current.second == pend) break; //Early exit
+
+		vector<Connection> neighboor = terrain.getConnections(&current.second);
+		cout << frontier.size() << endl;
+
+		for (int i = 0; i < neighboor.size(); i++) {
+			int newCost = current.first + neighboor[i].cost;
+			bool isthere = search(cFrom, *neighboor[i].getToNode());
+			float heu = newCost + heuristic(*neighboor[i].getToNode(), pend);
+			if (!isthere) {
+				neighboor[i].cost = newCost;
+				frontier.push(make_pair(heu, *neighboor[i].getToNode()));
+				cFrom.push_back(neighboor[i]);
+			}
+			else {
+				int pos = find(cFrom, *neighboor[i].getToNode());
+				int provaCost = cFrom[pos].cost;
+				if (newCost < provaCost) {
+					neighboor[i].cost = newCost;
+					frontier.push(make_pair(heu, *neighboor[i].getToNode()));
+					cFrom[pos] = neighboor[i];
+				}
 			}
 		}
 

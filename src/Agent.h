@@ -57,6 +57,8 @@ public:
 	Path pathFind(Vector2D pinit, Vector2D pend, Graph terrain);
 	Path breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain);
 	Path dijkstra(Vector2D pinit, Vector2D pend, Graph terrain);
+	Path greedyBestFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain);
+	Path apuntero(Vector2D pinit, Vector2D pend, Graph terrain);
 
 	bool autoCoin = false;
 	

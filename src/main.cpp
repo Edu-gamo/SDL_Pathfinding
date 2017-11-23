@@ -5,6 +5,7 @@
 #include "SDL_SimpleApp.h"
 #include "ScenePathFinding.h"
 #include "ScenePathFinding1.h"
+#include "ScenePathFinding2.h"
 
 #define FRAMES_PER_SEC 30
 
@@ -41,12 +42,14 @@ int main(int argc, char ** argv)
 			if (event.key.keysym.scancode == SDL_SCANCODE_1)
 			{
 				delete(curr_scene);
-				//curr_scene = new ScenePathFinding
 				curr_scene = new ScenePathFinding1;
 				app->setWindowTitle(curr_scene->getTitle());
 			}
 			if (event.key.keysym.scancode == SDL_SCANCODE_2)
 			{
+				delete(curr_scene);
+				curr_scene = new ScenePathFinding2;
+				app->setWindowTitle(curr_scene->getTitle());
 			}
 			if (event.key.keysym.scancode == SDL_SCANCODE_3)
 			{
