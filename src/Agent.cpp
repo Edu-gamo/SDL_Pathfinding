@@ -225,13 +225,16 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 	vector<Connection> cFrom;
 	cFrom.push_back(Connection(NULL, pinit, 0));
 
+	int cont = 0; //Contador de nodos explorados
+
 	while (frontier.size() > 0){
 
 		Vector2D current = frontier.front();
 		frontier.pop();
+		//if (current == pend) break; //Early exit
 		
 		vector<Connection> neighboor = terrain.getConnections(&current);
-		cout << frontier.size() << endl;
+		cont++;
 
 		for (int i = 0; i < neighboor.size(); i++) {
 			if (!search(cFrom, *neighboor[i].getToNode())) {
@@ -241,6 +244,8 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 		}
 
 	}
+
+	cout << "Nodos explorados (breadthFirstSearch): " << cont << endl;
 
 	Path pathInverse;
 	Vector2D current = pend;
@@ -265,7 +270,7 @@ Path Agent::breadthFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) {
 
 }
 
-bool operator<(pair<int, Vector2D> a, pair<int, Vector2D> b) { return a.first < b.first ? true : false; }
+bool operator<(pair<int, Vector2D> a, pair<int, Vector2D> b) { return a.first > b.first ? true : false; }
 
 Path Agent::dijkstra(Vector2D pinit, Vector2D pend, Graph terrain) {
 
@@ -274,14 +279,16 @@ Path Agent::dijkstra(Vector2D pinit, Vector2D pend, Graph terrain) {
 	vector<Connection> cFrom;
 	cFrom.push_back(Connection(NULL, pinit, 0));
 
+	int cont = 0; //Contador de nodos explorados
+
 	while (frontier.size() > 0) {
 
 		pair<int, Vector2D> current = frontier.top();
 		frontier.pop();
-		//if (current.second == pend) break; //Early exit
+		if (current.second == pend) break; //Early exit
 
 		vector<Connection> neighboor = terrain.getConnections(&current.second);
-		cout << frontier.size() << endl;
+		cont++;
 
 		for (int i = 0; i < neighboor.size(); i++) {
 			int newCost = current.first + neighboor[i].cost;
@@ -293,6 +300,7 @@ Path Agent::dijkstra(Vector2D pinit, Vector2D pend, Graph terrain) {
 			} else {
 				int pos = find(cFrom, *neighboor[i].getToNode());
 				int provaCost = cFrom[pos].cost;
+				if (provaCost < 0) cout << "ERROR" << endl;
 				if (newCost < provaCost) {
 					neighboor[i].cost = newCost;
 					frontier.push(make_pair(newCost, *neighboor[i].getToNode()));
@@ -302,6 +310,8 @@ Path Agent::dijkstra(Vector2D pinit, Vector2D pend, Graph terrain) {
 		}
 
 	}
+
+	cout << "Nodos explorados (dijkstra): " << cont << endl;
 
 	Path pathInverse;
 	Vector2D current = pend;
@@ -340,14 +350,16 @@ Path Agent::greedyBestFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) 
 	vector<Connection> cFrom;
 	cFrom.push_back(Connection(NULL, pinit, 0));
 
+	int cont = 0; //Contador de nodos explorados
+
 	while (frontier.size() > 0) {
 
 		pair<float, Vector2D> current = frontier.top();
 		frontier.pop();
-		//if (current.second == pend) break; //Early exit
+		if (current.second == pend) break; //Early exit
 
 		vector<Connection> neighboor = terrain.getConnections(&current.second);
-		cout << frontier.size() << endl;
+		cont++;
 		
 		for (int i = 0; i < neighboor.size(); i++) {
 			if (!search(cFrom, *neighboor[i].getToNode())) {
@@ -358,6 +370,8 @@ Path Agent::greedyBestFirstSearch(Vector2D pinit, Vector2D pend, Graph terrain) 
 		}
 
 	}
+
+	cout << "Nodos explorados (greedyBestFirstSearch): " << cont << endl;
 
 	Path pathInverse;
 	Vector2D current = pend;
@@ -389,6 +403,8 @@ Path Agent::apuntero(Vector2D pinit, Vector2D pend, Graph terrain) {
 	vector<Connection> cFrom;
 	cFrom.push_back(Connection(NULL, pinit, 0));
 
+	int cont = 0; //Contador de nodos explorados
+
 	while (frontier.size() > 0) {
 
 		pair<int, Vector2D> current = frontier.top();
@@ -396,12 +412,12 @@ Path Agent::apuntero(Vector2D pinit, Vector2D pend, Graph terrain) {
 		//if (current.second == pend) break; //Early exit
 
 		vector<Connection> neighboor = terrain.getConnections(&current.second);
-		cout << frontier.size() << endl;
+		cont++;
 
 		for (int i = 0; i < neighboor.size(); i++) {
 			int newCost = current.first + neighboor[i].cost;
 			bool isthere = search(cFrom, *neighboor[i].getToNode());
-			float heu = newCost + heuristic(*neighboor[i].getToNode(), pend);
+			float heu = newCost + (heuristic(*neighboor[i].getToNode(), pend) / (CELL_SIZE * CELL_SIZE));
 			if (!isthere) {
 				neighboor[i].cost = newCost;
 				frontier.push(make_pair(heu, *neighboor[i].getToNode()));
@@ -419,6 +435,8 @@ Path Agent::apuntero(Vector2D pinit, Vector2D pend, Graph terrain) {
 		}
 
 	}
+
+	cout << "Nodos explorados (apuntero): " << cont << endl;
 
 	Path pathInverse;
 	Vector2D current = pend;

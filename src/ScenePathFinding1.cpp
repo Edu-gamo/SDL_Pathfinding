@@ -72,7 +72,7 @@ void ScenePathFinding1::update(float dtime, SDL_Event *event)
 		}
 		if (event->key.keysym.scancode == SDL_SCANCODE_C && agents[0]->method != 2) {
 			agents[0]->method = 2;
-			cout << "Greedy Best-First-Search" << endl;
+			cout << "Greedy Best First Search" << endl;
 		}
 		if (event->key.keysym.scancode == SDL_SCANCODE_V && agents[0]->method != 3) {
 			agents[0]->method = 3;
@@ -179,6 +179,15 @@ void ScenePathFinding1::drawMaze()
 	if (draw_grid)
 	{
 
+
+		SDL_SetRenderDrawColor(TheApp::Instance()->getRenderer(), 255, 150, 50, 255);
+		for (unsigned int i = 0; i < slow_rects.size(); i++)
+			SDL_RenderFillRect(TheApp::Instance()->getRenderer(), &slow_rects[i]);
+
+		SDL_SetRenderDrawColor(TheApp::Instance()->getRenderer(), 102, 153, 0, 255);
+		for (unsigned int i = 0; i < slow_rects2.size(); i++)
+			SDL_RenderFillRect(TheApp::Instance()->getRenderer(), &slow_rects2[i]);
+
 		SDL_SetRenderDrawColor(TheApp::Instance()->getRenderer(), 0, 0, 255, 255);
 		for (unsigned int i = 0; i < maze_rects.size(); i++)
 			SDL_RenderFillRect(TheApp::Instance()->getRenderer(), &maze_rects[i]);
@@ -270,6 +279,12 @@ void ScenePathFinding1::initMaze()
 	rect = { 928,288,32,128 };
 	maze_rects.push_back(rect);
 
+	rect = { 160, 160, 320, 320 };
+	slow_rects.push_back(rect);
+
+	rect = { 800, 160, 320, 320 };
+	slow_rects2.push_back(rect);
+
 	// Initialize the terrain matrix (for each cell a zero value indicates it's a wall)
 
 	// (1st) initialize all cells to 1 by default
@@ -285,6 +300,25 @@ void ScenePathFinding1::initMaze()
 		for (int j = 0; j < num_cell_y; j++)
 		{
 			Vector2D cell_center((float)(i*CELL_SIZE + offset), (float)(j*CELL_SIZE + offset));
+
+			for (unsigned int b = 0; b < slow_rects.size(); b++)
+			{
+				if (Vector2DUtils::IsInsideRect(cell_center, (float)slow_rects[b].x, (float)slow_rects[b].y, (float)slow_rects[b].w, (float)slow_rects[b].h))
+				{
+					terrain[i][j] = 3;
+					break;
+				}
+			}
+
+			for (unsigned int b = 0; b < slow_rects2.size(); b++)
+			{
+				if (Vector2DUtils::IsInsideRect(cell_center, (float)slow_rects2[b].x, (float)slow_rects2[b].y, (float)slow_rects2[b].w, (float)slow_rects2[b].h))
+				{
+					terrain[i][j] = 5;
+					break;
+				}
+			}
+
 			for (unsigned int b = 0; b < maze_rects.size(); b++)
 			{
 				if (Vector2DUtils::IsInsideRect(cell_center, (float)maze_rects[b].x, (float)maze_rects[b].y, (float)maze_rects[b].w, (float)maze_rects[b].h))

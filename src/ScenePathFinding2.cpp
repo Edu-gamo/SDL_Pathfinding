@@ -86,8 +86,9 @@ void ScenePathFinding2::update(float dtime, SDL_Event *event)
 		startPath = false;
 	}
 
-	if ((currentTargetIndex == -1) && (pathPoints.points.size()>0) && startPath)
+	if ((currentTargetIndex == -1) && (pathPoints.points.size() > 0) && startPath) {
 		currentTargetIndex = 0;
+	}
 
 	if (currentTargetIndex >= 0)
 	{
@@ -162,7 +163,7 @@ void ScenePathFinding2::draw()
 
 const char* ScenePathFinding2::getTitle()
 {
-	return "SDL Steering Behaviors :: PathFinding1 Demo";
+	return "SDL Steering Behaviors :: PathFinding2 Demo";
 }
 
 void ScenePathFinding2::drawMaze()
